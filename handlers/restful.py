@@ -38,7 +38,7 @@ __author__ = 'William T. Katz'
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-import jsonpickle
+from django.utils import simplejson as json
 import logging
 import os
 import config
@@ -182,7 +182,7 @@ class Controller(webapp.RequestHandler):
         """
         callback = self.request.get('callback', default_value=None)
         
-        data = cgi.escape(jsonpickle.encode(data))
+        data = cgi.escape(json.dumps(data))
         
         if callback:
             self.response.headers.add_header("Content-Type", "application/javascript")

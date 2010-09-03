@@ -40,7 +40,6 @@ import os
 import cgi
 import urllib
 import logging
-import jsonpickle
 import status_images
 
 from wsgiref.handlers import format_date_time
