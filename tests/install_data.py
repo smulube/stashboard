@@ -32,7 +32,7 @@ from datetime import datetime, timedelta, date
                  description="Delete Me Please")
 #delete.put()
 
-bar = Service.get_by_slug("bar")
+bar = Service.get_by_slug("service-bar")
 cat = Status.get_by_slug("down")        
 
 dates = [
@@ -40,12 +40,15 @@ dates = [
     datetime(2010, 6, 10),
     datetime(2010, 7, 16), 
     datetime(2010, 7, 17),
-    datetime(2010, 7, 18, 7),
+    datetime(2010, 8, 31),
+    datetime(2010, 8, 30),
+    datetime(2010, 9, 1),
+    datetime(2010, 9, 2),
 ]
 
 for d in dates:
     e = Event(service=bar, status=cat, 
-          message="Error fine", start=d)
+          message="Error on date %s" % d.isoformat(), start=d)
     e.put()
 
 

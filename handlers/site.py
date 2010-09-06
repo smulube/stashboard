@@ -55,7 +55,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.api import users
 
-import oauth2 as oauth
+from utils.external import oauth2 as oauth
 from handlers import restful
 from utils import authorized
 from models import Status, Service, Event, Profile, AuthRequest
@@ -329,11 +329,6 @@ class VerifyAccessHandler(restful.Controller):
                     profile.put()
                 
         self.redirect("/documentation/credentials")
-        
-        
-
-
-        
             
 class ProfileHandler(restful.Controller):
     

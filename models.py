@@ -46,6 +46,7 @@ class Level(object):
     
     @staticmethod
     def all():
+        """ Return all valid levels"""
         llist = []
         for k in Level.levels.keys():
             llist.append((k, Level.levels[k]))
@@ -54,6 +55,7 @@ class Level(object):
         
     @staticmethod
     def get_severity(level):
+        """ Return the severity of a given level"""
         try:
             return Level.levels[level]
         except:
@@ -61,6 +63,7 @@ class Level(object):
             
     @staticmethod
     def get_level(severity):
+        """ For a given severity, return the correct level"""
         for k in Level.levels.keys():
             if Level.levels[k] == severity:
                 return k
@@ -80,10 +83,17 @@ class Service(db.Model):
     def get_by_slug(service_slug):
         return Service.all().filter('slug = ', service_slug).get()
         
+    
+    slug = db.StringProperty(required=True)
+    name = db.StringProperty(required=True)
+    description = db.StringProperty(required=True)
+    
+    def sid(self):
+        return str(self.key())
+
     def current_event(self):
         event = self.events.order('-start').get()
         return event
-
 
     #Specialty function for front page
     def last_five_days(self):
@@ -140,13 +150,6 @@ class Service(db.Model):
             
     def compare(self, other_status):
         return 0
-    
-    slug = db.StringProperty(required=True)
-    name = db.StringProperty(required=True)
-    description = db.StringProperty(required=True)
-    
-    def sid(self):
-        return str(self.key())
         
     def resource_url(self):
         return "/services/" + self.slug
