@@ -33,14 +33,14 @@ from datetime import timedelta
 from datetime import date
 from datetime import datetime
 from datetime import time
-from dateutil.parser import parse
+from utils.external.dateutil.parser import parse
 import string
 import re
 import os
 import cgi
 import urllib
 import logging
-import status_images
+from utils.external import status_images
 
 from wsgiref.handlers import format_date_time
 from time import mktime

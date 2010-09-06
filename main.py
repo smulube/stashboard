@@ -30,10 +30,7 @@ import logging
 import wsgiref.handlers
 
 # Force sys.path to have our own directory first, so we can import from it.
-sys.path.insert(0, config.APP_ROOT_DIR)
-sys.path.insert(1, os.path.join(config.APP_ROOT_DIR, 'utils/external'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-
 
 from google.appengine.api import memcache
 from google.appengine.ext import webapp
@@ -84,8 +81,10 @@ ROUTES = [
     
     ('/.*$', site.NotFoundHandler),
     
-    
 ]
+
+def application():
+    return webapp.WSGIApplication(ROUTES)
 
 def main():
     # Check if defaults have been installed
@@ -98,8 +97,7 @@ def main():
         if not memcache.add("installed_defaults", True):
             logging.error("Memcache set failed.")
 
-    application = webapp.WSGIApplication(ROUTES, debug=config.DEBUG)
-    wsgiref.handlers.CGIHandler().run(application)
+    wsgiref.handlers.CGIHandler().run(application())
 
 if __name__ == "__main__":
     main()
