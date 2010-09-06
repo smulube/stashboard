@@ -174,7 +174,7 @@ class Controller(webapp.RequestHandler):
             path = os.path.join(path, p)
             
         self.response.out.write(template.render(path, templateparams))
-        
+
     def json(self, data):
         """
         Renders the given data as json. 

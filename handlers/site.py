@@ -62,49 +62,6 @@ from models import Status, Service, Event, Profile, AuthRequest
 
 import config
 
-def default_template_data():
-    user = users.get_current_user()
-    
-    if user:
-        greeting = users.create_logout_url("/")
-    else:
-        greeting = users.create_login_url("/")
-        
-    
-        
-    status_images = [
-        [
-            "tick-circle",
-            "cross-circle",
-            "exclamation",
-            "wrench",
-            "flag",
-        ],
-        [
-            "clock",
-            "heart",
-            "hard-hat",
-            "information",
-            "lock",
-        ],
-        [
-            "plug",
-            "question",
-            "traffic-cone",
-            "bug",
-            "broom",
-        ],
-    ]
-    
-    data = {
-        "title": config.SITE["title"],
-        "user": user,
-        "user_is_admin": users.is_current_user_admin(),
-        "login_link": greeting, 
-        'common_statuses': status_images,
-    }
-    
-    return data
 
 def get_past_days(num):
     date = datetime.date.today()
@@ -115,36 +72,85 @@ def get_past_days(num):
     
     return dates
     
+class SiteHandler(restful.Controller):
 
-class NotFoundHandler(restful.Controller):
+    def default_parameters(self, params):
+        """ Add any parameters that should be included by default """
+        user = users.get_current_user()
+    
+        if user:
+            greeting = users.create_logout_url("/")
+        else:
+            greeting = users.create_login_url("/")
+        
+    
+        
+        status_images = [
+            [
+                "tick-circle",
+                "cross-circle",
+                "exclamation",
+                "wrench",
+                "flag",
+                ],
+            [
+                "clock",
+                "heart",
+                "hard-hat",
+                "information",
+                "lock",
+                ],
+            [
+                "plug",
+                "question",
+                "traffic-cone",
+                "bug",
+                "broom",
+                ],
+            ]
+            
+        params["title"] = config.SITE["title"]
+        params["version"] = { 
+            "css": config.CSS_VERSION,
+            "image": config.IMAGES_VERSION,
+            "js": config.JS_VERSION,
+            }
+        params["user"] = user
+        params["user_is_admin"] =  users.is_current_user_admin()
+        params["login_link"] = greeting 
+        params['common_statuses'] = status_images
+    
+        return params
+
+    def render(self, templateparams, *args):
+        "Writes templateparams to a given template"
+        params = self.default_parameters(templateparams)
+        super(SiteHandler, self).render(params, *args)
+
+class NotFoundHandler(SiteHandler):
     def get(self):
         logging.debug("NotFoundHandler#get")
-        template_data = {}
-        self.render(template_data, '404.html')
+        self.render({}, '404.html')
 
 class UnauthorizedHandler(webapp.RequestHandler):
     def get(self):
         logging.debug("UnauthorizedHandler#get")
         self.error(403)
-        #template_data = {}
-        #self.render(template_data, 'unathorized.html')
 
-class RootHandler(restful.Controller):
+class RootHandler(SiteHandler):
     
     @authorized.force_ssl(only_admin=True)
     def get(self):
         user = users.get_current_user()
         logging.debug("RootHandler#get")
         
-        q = Service.all()
-        q.order("name")
-        
-        td = default_template_data()
-        td["past"] = get_past_days(5)
+        td = {
+            "past": get_past_days(5)
+            }
 
         self.render(td, 'index.html')
         
-class ServiceHandler(restful.Controller):
+class ServiceHandler(SiteHandler):
         
     @authorized.force_ssl(only_admin=True)
     def get(self, service_slug, year=None, month=None, day=None):
@@ -175,7 +181,7 @@ class ServiceHandler(restful.Controller):
             self.render({},'404.html')
             return
             
-        td = default_template_data()
+        td = {}
         td["service"] = service_slug
         
         if start_date and end_date:
@@ -193,16 +199,15 @@ class ServiceHandler(restful.Controller):
 
         self.render(td, 'service.html')
         
-class DebugHandler(restful.Controller):
+class DebugHandler(SiteHandler):
     
     @authorized.force_ssl()
     def get(self):
         logging.debug("DebugHandler %s", self.request.scheme)
-        td = default_template_data()
-        self.render(td,'base.html')
+        self.render({},'base.html')
 
         
-class BasicRootHandler(restful.Controller):
+class BasicRootHandler(SiteHandler):
     def get(self):
         user = users.get_current_user()
         logging.debug("BasicRootHandler#get")
@@ -216,7 +221,7 @@ class BasicRootHandler(restful.Controller):
         
         past = get_past_days(5)
         
-        td = default_template_data()
+        td = {}
         td["services"] = q.fetch(100)
         td["statuses"] = p.fetch(100)
         td["past"] = past
@@ -224,14 +229,13 @@ class BasicRootHandler(restful.Controller):
 
         self.render(td, 'basic','index.html')
 
-class BasicServiceHandler(restful.Controller):
+class BasicServiceHandler(SiteHandler):
 
     def get(self, service_slug, year=None, month=None, day=None):
         user = users.get_current_user()
         logging.debug("BasicServiceHandler#get")
 
         service = Service.get_by_slug(service_slug)
-        
 
         if not service:
             self.render({}, "404.html")
@@ -264,7 +268,7 @@ class BasicServiceHandler(restful.Controller):
 
         events.order("-start")
 
-        td = default_template_data()
+        td = {}
         td["service"] = service
         td["events"] = events.fetch(100)
         td["start_date"] = start_date
@@ -272,10 +276,10 @@ class BasicServiceHandler(restful.Controller):
 
         self.render(td, 'basic','service.html')
         
-class DocumentationHandler(restful.Controller):
+class DocumentationHandler(SiteHandler):
     
     def get(self, page):
-        td = default_template_data()
+        td = {}
         
         if page == "overview":
             td["overview_selected"] = True
@@ -291,7 +295,7 @@ class DocumentationHandler(restful.Controller):
             
         
             
-class VerifyAccessHandler(restful.Controller):
+class VerifyAccessHandler(SiteHandler):
     
     @authorized.force_ssl()
     @authorized.role("admin")
@@ -330,7 +334,7 @@ class VerifyAccessHandler(restful.Controller):
                 
         self.redirect("/documentation/credentials")
             
-class ProfileHandler(restful.Controller):
+class ProfileHandler(SiteHandler):
     
     @authorized.force_ssl()
     def get(self):
@@ -338,7 +342,7 @@ class ProfileHandler(restful.Controller):
         consumer_key = 'anonymous'
         consumer_secret = 'anonymous'
         
-        td = default_template_data()
+        td = {}
         td["logged_in"] = False
         td["credentials_selected"] = True
         td["consumer_key"] = consumer_key

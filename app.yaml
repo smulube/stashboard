@@ -7,23 +7,17 @@ derived_file_type:
 - python_precompiled
 
 handlers:
-# URLS for testing
-#- url: /tests
-#  static_dir: testing
-#  login: required
-
-#- url: /runner
-#  script: runner.py
-#  login: required
-
 - url: /css
   static_dir: static/css
+  expiration: 90d
 
 - url: /images
   static_dir: static/images
+  expiration: 90d
 
 - url: /js
   static_dir: static/js
+  expiration: 90d
   
 - url: /widget
   static_dir: static/widget
