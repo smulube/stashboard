@@ -26,8 +26,15 @@ use_library('django', '1.1')
 
 APP_ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
-#Stashboard version
+# Stashboard version
 VERSION = "1.1.6"
+
+# Static Files Version, used for proper caching
+# If you make a change to any of these static files,
+# make sure to update these values
+CSS_VERSION    = "1"
+JS_VERSION     = "1"
+IMAGES_VERSION = "1"
 
 SITE = {
     "html_type": "text/html",
