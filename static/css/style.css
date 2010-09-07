@@ -111,7 +111,8 @@ h3.date-range {color: #999; margin-top: 20px}
 #footer ul {padding: 10px 0px;}
 #footer ul.left { float: left;}
 #footer ul.right { float: right;}
-#footer ul li {display: inline;}
+#footer ul li {display: inline; border-left: 1px solid black; padding: 0px 5px;}
+#footer ul li:first-child {border: 0px; padding-left: 0px;}
 #icons, #icons a{ color: #ccc; }
 
 td.status a{position: relative;}
@@ -164,7 +165,7 @@ td.status a .information {position: absolute; top: 0px; left: 1px; z-index: 500;
 #documentation table caption {font-style: italic; text-align: right;}
 
 
-#documentation nav ul {
+#documentation nav ul, #admin nav ul {
     height: 50px; background: #4476b5;
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
@@ -173,14 +174,14 @@ td.status a .information {position: absolute; top: 0px; left: 1px; z-index: 500;
 
 }
 
-#documentation nav li {
+#documentation nav li, #admin nav li {
     float: left;
     height: 50px;
     margin: 0 20px;
     line-height: 50px;
 }
 
-#documentation nav li a {
+#documentation nav li a, #admin nav li a {
     display:block;
     font-size:15px;
     font-weight:bold;
@@ -188,10 +189,9 @@ td.status a .information {position: absolute; top: 0px; left: 1px; z-index: 500;
     color: #F3FBEC;
 }
 
-#documentation nav .selected {
+#documentation nav .selected, #admin nav .selected {
     background:url("../images/sub-nav-selected-arrow.png") no-repeat scroll center bottom transparent;
 }
-
 
 
 #documentation blockquote, pre {

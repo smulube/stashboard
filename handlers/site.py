@@ -40,7 +40,6 @@ __author__ = 'Kyle Conroy'
 
 import datetime
 from datetime import date, timedelta
-import calendar
 import string
 import re
 import os
@@ -61,7 +60,6 @@ from utils import authorized
 from models import Status, Service, Event, Profile, AuthRequest
 
 import config
-
 
 def get_past_days(num):
     date = datetime.date.today()
@@ -109,7 +107,8 @@ class SiteHandler(restful.Controller):
                 ],
             ]
             
-        params["title"] = config.SITE["title"]
+        if "title" not in params:
+            params["title"] = config.SITE["title"]
         params["version"] = { 
             "css": config.CSS_VERSION,
             "image": config.IMAGES_VERSION,
@@ -122,95 +121,32 @@ class SiteHandler(restful.Controller):
     
         return params
 
-    def render(self, templateparams, *args):
+    def render(self, templateparams, path):
         "Writes templateparams to a given template"
         params = self.default_parameters(templateparams)
-        super(SiteHandler, self).render(params, *args)
+        super(SiteHandler, self).render(params, path)
+
+    def not_found(self):
+        self.response.set_status(404)
+        self.render({}, '404.html')
 
 class NotFoundHandler(SiteHandler):
     def get(self):
         logging.debug("NotFoundHandler#get")
+        self.response.set_status(404)
         self.render({}, '404.html')
 
 class UnauthorizedHandler(webapp.RequestHandler):
     def get(self):
         logging.debug("UnauthorizedHandler#get")
-        self.error(403)
-
-class RootHandler(SiteHandler):
-    
-    @authorized.force_ssl(only_admin=True)
-    def get(self):
-        user = users.get_current_user()
-        logging.debug("RootHandler#get")
-        
-        td = {
-            "past": get_past_days(5)
-            }
-
-        self.render(td, 'index.html')
-        
-class ServiceHandler(SiteHandler):
-        
-    @authorized.force_ssl(only_admin=True)
-    def get(self, service_slug, year=None, month=None, day=None):
-        user = users.get_current_user()
-        logging.debug("ServiceHandler#get")
-        
-        service = Service.get_by_slug(service_slug)
-        
-        if not service:
-            self.render({}, "404.html")
-            return
-        
-        try: 
-            if day:
-                start_date = date(int(year),int(month),int(day))
-                end_date = start_date + timedelta(days=1)
-            elif month:
-                start_date = date(int(year),int(month),1)
-                days = calendar.monthrange(start_date.year, start_date.month)[1]
-                end_date = start_date + timedelta(days=days)
-            elif year:
-                start_date = date(int(year),1,1)
-                end_date = start_date + timedelta(days=365)
-            else:
-                start_date = None
-                end_date = None
-        except ValueError:
-            self.render({},'404.html')
-            return
-            
-        td = {}
-        td["service"] = service_slug
-        
-        if start_date and end_date:
-            start_stamp = mktime(start_date.timetuple())
-            end_stamp = mktime(end_date.timetuple())
-            # Remove GMT from the string so that the date is
-            # is parsed in user's time zone
-            td["start_date"] = start_date
-            td["end_date"] = end_date
-            td["start_date_stamp"] = format_date_time(start_stamp)[:-4]
-            td["end_date_stamp"] = format_date_time(end_stamp)[:-4]
-        else:
-            td["start_date"] = None
-            td["end_date"] = None
-
-        self.render(td, 'service.html')
-        
-class DebugHandler(SiteHandler):
-    
-    @authorized.force_ssl()
-    def get(self):
-        logging.debug("DebugHandler %s", self.request.scheme)
-        self.render({},'base.html')
+        self.response.set_status(403)
+        self.render({}, '403.html')
 
         
 class BasicRootHandler(SiteHandler):
     def get(self):
         user = users.get_current_user()
-        logging.debug("BasicRootHandler#get")
+        logging.debug("BasicRootHandler #get")
 
         q = Service.all()
         q.order("name")
@@ -227,18 +163,18 @@ class BasicRootHandler(SiteHandler):
         td["past"] = past
         td["default"] = Status.default()
 
-        self.render(td, 'basic','index.html')
+        self.render(td, 'site/index.html')
 
 class BasicServiceHandler(SiteHandler):
 
     def get(self, service_slug, year=None, month=None, day=None):
         user = users.get_current_user()
-        logging.debug("BasicServiceHandler#get")
+        logging.debug("BasicServiceHandler #get")
 
         service = Service.get_by_slug(service_slug)
 
         if not service:
-            self.render({}, "404.html")
+            self.not_found()
             return
 
         events = service.events
@@ -260,7 +196,7 @@ class BasicServiceHandler(SiteHandler):
                 end_date = None
                 show_admin = True
         except ValueError:
-            self.render({},'404.html')
+            self.not_found()
             return
             
         if start_date and end_date:
@@ -274,129 +210,31 @@ class BasicServiceHandler(SiteHandler):
         td["start_date"] = start_date
         td["end_date"] = end_date
 
-        self.render(td, 'basic','service.html')
+        self.render(td, 'site/service.html')
         
-class DocumentationHandler(SiteHandler):
+class DocumentationOverview(SiteHandler):
     
-    def get(self, page):
-        td = {}
-        
-        if page == "overview":
-            td["overview_selected"] = True
-            self.render(td, 'overview.html')
-        elif page == "rest":
-            td["rest_selected"] = True
-            self.render(td, 'restapi.html')
-        elif page == "examples":
-            td["example_selected"] = True
-            self.render(td, 'examples.html')
-        else:
-            self.render({},'404.html')
-            
-        
-            
-class VerifyAccessHandler(SiteHandler):
-    
-    @authorized.force_ssl()
-    @authorized.role("admin")
     def get(self):
-        oauth_token = self.request.get('oauth_token', default_value=None)
-        oauth_verifier = self.request.get('oauth_verifier', default_value=None)
-        user = users.get_current_user()
-        authr = AuthRequest.all().filter('owner = ', user).get()
-
-        if oauth_token and oauth_verifier and user and authr:
-            
-            host = self.request.headers.get('host', 'nohost')
-            access_token_url = 'https://%s/_ah/OAuthGetAccessToken' % host
-            
-            consumer_key = 'anonymous'
-            consumer_secret = 'anonymous'
-
-            consumer = oauth.Consumer(consumer_key, consumer_secret)
-            
-            token = oauth.Token(oauth_token, authr.request_secret)
-            token.set_verifier(oauth_verifier)
-            client = oauth.Client(consumer, token)
-            
-            if "localhost" not in host:
-                
-                resp, content = client.request(access_token_url, "POST")
-                
-                if resp['status'] == '200':
-                
-                    access_token = dict(cgi.parse_qsl(content))
-                
-                    profile = Profile(owner=user,
-                                      token=access_token['oauth_token'],
-                                      secret=access_token['oauth_token_secret'])
-                    profile.put()
-                
-        self.redirect("/documentation/credentials")
-            
-class ProfileHandler(SiteHandler):
-    
-    @authorized.force_ssl()
-    def get(self):
-        
-        consumer_key = 'anonymous'
-        consumer_secret = 'anonymous'
-        
         td = {}
-        td["logged_in"] = False
-        td["credentials_selected"] = True
-        td["consumer_key"] = consumer_key
-        
-        user = users.get_current_user()
-        
-        if user: 
-            
-            td["logged_in"] = users.is_current_user_admin()
-            profile = Profile.all().filter('owner = ', user).get()
-                
-            if profile:
-            
-                td["user_is_authorized"] = True
-                td["profile"] = profile
-            
-            else:
-            
-                host = self.request.headers.get('host', 'nohost')
-            
-                callback = 'http://%s/documentation/verify' % host
+        td["overview_selected"] = True
+        self.render(td, 'documentation/overview.html')
 
-                request_token_url = 'https://%s/_ah/OAuthGetRequestToken?oauth_callback=%s' % (host, callback)
-                authorize_url = 'https://%s/_ah/OAuthAuthorizeToken' % host
+class DocumentationRest(SiteHandler):
+    
+    def get(self):
+        td = {}
+        td["rest_selected"] = True
+        self.render(td, 'documentation/restapi.html')
 
-                consumer = oauth.Consumer(consumer_key, consumer_secret)
-                client = oauth.Client(consumer)
+class DocumentationExamples(SiteHandler):
+    
+    def get(self):
+        td = {}
+        td["example_selected"] = True
+        self.render(td, 'documentation/examples.html')
 
-                # Step 1: Get a request token. This is a temporary token that is used for 
-                # having the user authorize an access token and to sign the request to obtain 
-                # said access token.
-            
-                td["user_is_authorized"] = False
-            
-                if "localhost" not in host:
-                
-                    resp, content = client.request(request_token_url, "GET")
-            
-                    if resp['status'] == '200':
-
-                        request_token = dict(cgi.parse_qsl(content))
-                    
-                        authr = AuthRequest.all().filter("owner =", user).get()
-                    
-                        if authr:
-                            authr.request_secret = request_token['oauth_token_secret']
-                        else:
-                            authr = AuthRequest(owner=user,
-                                    request_secret=request_token['oauth_token_secret'])
-                                
-                        authr.put()
-                
-                        td["oauth_url"] = "%s?oauth_token=%s" % (authorize_url, request_token['oauth_token'])
-                
-        self.render(td, 'credentials.html')
-
+class TestHandler(SiteHandler):
+    
+    def get(self):
+        self.render({},'admin/test.html')
         

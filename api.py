@@ -23,54 +23,29 @@
 
 __author__ = 'Kyle Conroy'
 
-import config
-import os
-import sys
-import logging
+# API HANDLER
 import wsgiref.handlers
-
-# SITE HANDLER
-
-# Force sys.path to have our own directory first, so we can import from it.
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-
-from google.appengine.api import memcache
 from google.appengine.ext import webapp
-
-from handlers import site
-from models import Status, Setting
-
+from handlers import api
 
 ROUTES = [
-    ('/*$', site.BasicRootHandler),
-    ('/403.html', site.UnauthorizedHandler),
-    ('/404.html', site.NotFoundHandler),
-    (r'/services/(.+)/(.+)/(.+)/(.+)', site.BasicServiceHandler),
-    (r'/services/(.+)/(.+)/(.+)', site.BasicServiceHandler),
-    (r'/services/(.+)/(.+)', site.BasicServiceHandler),
-    (r'/services/(.+)', site.BasicServiceHandler),
-    (r'/documentation/overview', site.DocumentationOverview),
-    (r'/documentation/examples', site.DocumentationExamples),
-    (r'/documentation/rest', site.DocumentationRest),
-    ('/.*$', site.NotFoundHandler),
-    
+    #API
+    (r'/api/(.+)/services', api.ServicesListHandler),
+    (r'/api/(.+)/services/(.+)/events', api.EventsListHandler),
+    (r'/api/(.+)/services/(.+)/events/current', api.CurrentEventHandler),
+    (r'/api/(.+)/services/(.+)/events/(.+)', api.EventInstanceHandler),
+    (r'/api/(.+)/services/(.+)', api.ServiceInstanceHandler),
+    (r'/api/(.+)/statuses', api.StatusesListHandler),
+    (r'/api/(.+)/statuses/(.+)', api.StatusInstanceHandler),
+    (r'/api/(.+)/status-images', api.ImagesListHandler),
+    (r'/api/(.+)/levels', api.LevelsListHandler),
+    (r'/api/.*', api.NotFoundHandler),
 ]
 
 def application():
     return webapp.WSGIApplication(ROUTES)
 
 def main():
-    # Check if defaults have been installed
-    # Keep this for now, will be removed shortly
-    installed_defaults = memcache.get("installed_defaults")
-    if installed_defaults is None:
-        installed_defaults = Setting.all().filter('name = ', 'installed_defaults').get()
-        if installed_defaults is None:
-            logging.info("Installing default statuses")
-            Status.install_defaults()
-        if not memcache.add("installed_defaults", True):
-            logging.error("Memcache set failed.")
-
     wsgiref.handlers.CGIHandler().run(application())
 
 if __name__ == "__main__":
