@@ -4,9 +4,10 @@
     <meta charset="utf-8" />
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/css/reset.css?dte={{ version.css }}" type="text/css" media="screen" />
-    <link rel="stylesheet" href="/css/style.css?dte={{ version.css }}" type="text/css" media="screen" />    
+    <link rel="stylesheet" href="/css/style.css?dte={{ version.css }}" type="text/css" media="screen" /> 
     <link rel="stylesheet" href="/css/jqueryui.css?dte={{ version.css }}" type="text/css" media="screen" />
-    <link rel="stylesheet" href="/css/prettify.css?dte={{ version.css }}" type="text/css" media="screen" />    
+    <link rel="stylesheet" href="/css/prettify.css?dte={{ version.css }}" type="text/css" media="screen" />
+    {% block css %}{% endblock %}
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <script type="text/javascript"
 src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.0/jquery-ui.min.js"></script>
@@ -27,7 +28,9 @@ src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.0/jquery-ui.min.js"></sc
       <div id="header">
 	<div id="notice"><span></span><a href="#">X</a></div>
         <img id="logo" src="/images/logo.png" alt="Logo"/>
-        <a href="/"><h1 id="title">{{ title }}</h1></a>
+        {% block title %}
+	<a href="/"><h1 id="title">{{ title }}</h1></a>
+	{% endblock %}
       </div>
       <div id="content">
         {% block content %}
@@ -49,15 +52,16 @@ src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.0/jquery-ui.min.js"></sc
             </a>
           {% endif %}
         </li>
-	<li>-</li>
+	<li>
+	  <a href="/admin">
+	    Admin
+	  </a>
 	<li>
 	  <a href="/documentation/overview">
             API Documentation
           </a>
 	</li>
-        <li>-</li>
-        <li>Copyright (c) {% now "Y" %} <a href="http://www.twilio.com">Twilio Inc.</a></li>
-       <li>-</li>
+        <li>Copyright &copy {% now "Y" %} <a href="http://www.twilio.com">Twilio Inc.</a></li>
        <li id="icons">Icons by <a href="http://p.yusukekamiyamane.com/">Yusuke Kamiyamane</a></li>
       </ul>
       <ul class="right">

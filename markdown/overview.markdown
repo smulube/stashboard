@@ -32,7 +32,7 @@ Read more about creating and modifying statuses in the [Status Resource section]
 
 To access information through the REST API, no authentication is required. However, to change any information via the REST API (POST/PUT/DELETE), authentication and SSL are required.
 
-StashBoard uses OAuth for authentication purposes. To authenticate your account and obtain your API keys, head over to the [API Credentials section](/documentation/credentials). 
+StashBoard uses OAuth for authentication purposes. To authenticate your account and obtain your API keys, head over to the [API Credentials section](/admin/credentials). 
 
 
 

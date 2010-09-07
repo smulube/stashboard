@@ -2,7 +2,7 @@
 
 The following examples will use the StashBoard REST API to create a service, create a status, and then create an event with the new status for the new service. Sample code is provided for Python, Ruby, and PHP. 
 
-If you haven't already, head over to the [API Credentials section](/documentation/credentials) to obtain your API key. Please note that you must be an administrator to make changes via the REST API.
+If you haven't already, head over to the [API Credentials section](/admin/credentials) to obtain your API key. Please note that you must be an administrator to make changes via the REST API.
 
 ### Python
 

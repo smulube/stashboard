@@ -266,7 +266,7 @@ stashboard.fillIndex = function() {
 
         $('<td />').append(
             $('<a />', {
-                href: 'services/' + data.id,
+                href: '/admin/services/' + data.id,
                 text: data.name
             })
         ).appendTo(tr);
@@ -277,7 +277,7 @@ stashboard.fillIndex = function() {
         
         $('<td />', {"class": "status highlight"}).append(
             $('<a />', {
-                href: 'services/' + data.id,
+                href: '/admin/services/' + data.id,
                 html: $("<img />", {
                     src: imageRow,
                     alt: "Unknown Status"
@@ -606,7 +606,7 @@ stashboard.fillService = function(serviceName, isAdmin, start_date, end_date) {
                                 url: "/api/v1/services/" + service.id,
                                 dataType: 'json', 
                                 success: function(data){
-                                    location.replace("/");  
+                                    location.replace("/admin");  
                                 }
                             });
                         },

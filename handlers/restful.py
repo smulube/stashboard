@@ -166,13 +166,11 @@ class Controller(webapp.RequestHandler):
     def head(self, *params):
         pass
         
-    def render(self, templateparams, *args):
+    def render(self, templateparams, p):
         "Writes templateparams to a given template"
         path = config.SITE["template_path"]
-
-        for p in args:
-            path = os.path.join(path, p)
-            
+        path = os.path.join(path, p)
+        logging.info(path)
         self.response.out.write(template.render(path, templateparams))
 
     def json(self, data):

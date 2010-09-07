@@ -23,54 +23,29 @@
 
 __author__ = 'Kyle Conroy'
 
-import config
+# ADMIN HANDLER
 import os
-import sys
-import logging
 import wsgiref.handlers
-
-# SITE HANDLER
-
-# Force sys.path to have our own directory first, so we can import from it.
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-
-from google.appengine.api import memcache
 from google.appengine.ext import webapp
+from handlers import admin, site
 
-from handlers import site
-from models import Status, Setting
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 
 ROUTES = [
-    ('/*$', site.BasicRootHandler),
-    ('/403.html', site.UnauthorizedHandler),
-    ('/404.html', site.NotFoundHandler),
-    (r'/services/(.+)/(.+)/(.+)/(.+)', site.BasicServiceHandler),
-    (r'/services/(.+)/(.+)/(.+)', site.BasicServiceHandler),
-    (r'/services/(.+)/(.+)', site.BasicServiceHandler),
-    (r'/services/(.+)', site.BasicServiceHandler),
-    (r'/documentation/overview', site.DocumentationOverview),
-    (r'/documentation/examples', site.DocumentationExamples),
-    (r'/documentation/rest', site.DocumentationRest),
-    ('/.*$', site.NotFoundHandler),
-    
+    (r'/admin', admin.RootHandler),
+    (r'/admin/services/(.+)', admin.ServiceHandler),
+    (r'/admin/services', admin.RootHandler),
+    (r'/admin/statuses', admin.StatusHandler),
+    (r'/admin/credentials', admin.ProfileHandler),
+    (r'/admin/verify', admin.VerifyAccessHandler),
+    (r'.*', site.NotFoundHandler),
 ]
 
 def application():
     return webapp.WSGIApplication(ROUTES)
 
 def main():
-    # Check if defaults have been installed
-    # Keep this for now, will be removed shortly
-    installed_defaults = memcache.get("installed_defaults")
-    if installed_defaults is None:
-        installed_defaults = Setting.all().filter('name = ', 'installed_defaults').get()
-        if installed_defaults is None:
-            logging.info("Installing default statuses")
-            Status.install_defaults()
-        if not memcache.add("installed_defaults", True):
-            logging.error("Memcache set failed.")
-
     wsgiref.handlers.CGIHandler().run(application())
 
 if __name__ == "__main__":

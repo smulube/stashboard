@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "admin.html" %}
 
 {% block js_end %}
     <script type="text/javascript">
@@ -8,9 +8,9 @@
     </script>
 {% endblock %}
 
-{% block content %}
+{% block document %}
 
-      <div id="webservices" class="frame">
+      <div id="webservices">
         
           <table id="service-list">
             <thead>
@@ -22,16 +22,10 @@
             <tbody id="services-body">
             </tbody>
           </table>
-        
-        {% if user_is_admin %}
+
           <a id="add-service" class="button" href="#">Add New Service</a>
-        {% endif %}
-        
-        {% include "_legend.html" %}
         
       </div>
-      
-      {% if user_is_admin %}
       
       <div class="dialog" id="add-service-modal" title="Add New Service">
         <label  for="service-name">Name</label>
@@ -40,9 +34,6 @@
         <textarea
           id="service-description" name="service-description"></textarea>
       </div>
-      
-      {% endif %}
-      
       
 {% endblock %}
 

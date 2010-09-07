@@ -30,9 +30,17 @@ handlers:
   static_files: static/robots.txt
   upload: static/robots.txt
   
+- url: /admin.*
+  script: admin.py
+  secure: always
+  login: admin
+
+- url: /api.*
+  script: api.py
+  secure: optional
+
 - url: .*
   script: main.py
-  secure: optional
 
 skip_files: |
  ^(.*/)?(
