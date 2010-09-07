@@ -36,7 +36,7 @@ ROUTES = [
     (r'/admin', admin.RootHandler),
     (r'/admin/services/(.+)', admin.ServiceHandler),
     (r'/admin/services', admin.RootHandler),
-    (r'/admin/statuses', site.NotFoundHandler),
+    (r'/admin/statuses', admin.StatusHandler),
     (r'/admin/credentials', admin.ProfileHandler),
     (r'/admin/verify', admin.VerifyAccessHandler),
     (r'.*', site.NotFoundHandler),

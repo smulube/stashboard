@@ -5,7 +5,6 @@
       $(document).ready(function(){
         var startDate = false;
         var endDate = false;
-        var isAdmin = false;
         var service = "{{ service }}";
       
         {% if start_date %}
@@ -13,9 +12,7 @@
           var endDate = new Date("{{ end_date_stamp }}");
         {% endif %}
       
-        {% if user_is_admin %}
-          var isAdmin = true;
-        {% endif %}
+        var isAdmin = true;
       
         stashboard.fillService(service, isAdmin, startDate, endDate);
       });

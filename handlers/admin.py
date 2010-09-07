@@ -35,14 +35,25 @@ from utils.external import oauth2 as oauth
 class RootHandler(site.SiteHandler):
     
     def get(self):
-        user = users.get_current_user()
         logging.debug("AdminRootHandler#get")
         
         td = {
+            "services_selected": True,
             "past": site.get_past_days(5),
             }
 
         self.render(td, 'admin/services.html')
+
+class StatusHandler(site.SiteHandler):
+
+    def get(self):
+        logging.debug("StatusHandler#get")
+        
+        td = {
+            "statuses_selected": True,
+            }
+
+        self.render(td, 'admin/statuses.html')
         
 class ServiceHandler(site.SiteHandler):
         
@@ -74,8 +85,10 @@ class ServiceHandler(site.SiteHandler):
             self.not_found()
             return
             
-        td = {}
-        td["service"] = service_slug
+        td = {
+            "services_selected": True,
+            "service": service_slug,
+            }
         
         if start_date and end_date:
             start_stamp = mktime(start_date.timetuple())

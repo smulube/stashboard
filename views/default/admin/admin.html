@@ -1,7 +1,7 @@
 {% extends "../base.html" %}
 
 {% block title %}
-<a href="/admin"><h1 id="title">{{ title }} Admin</h1></a>
+<a href="/"><h1 id="title">{{ title }}</h1></a>
 {% endblock %}
 
 {% block content %}
@@ -10,13 +10,13 @@
     
     <nav>
       <ul>
-        <li {% if overview_selected %} class="selected" {% endif %}>
+        <li {% if services_selected %} class="selected" {% endif %}>
           <a href="/admin/services">Services</a></li>
 
-        <li {% if overview_selected %} class="selected" {% endif %}>
+        <li {% if statuses_selected %} class="selected" {% endif %}>
           <a href="/admin/statuses">Statuses</a></li>
           
-        <li {% if rest_selected %} class="selected" {% endif %}>
+        <li {% if credentials_selected %} class="selected" {% endif %}>
           <a href="/admin/credentials">API Credentials</a></li>
           
       </ul>
