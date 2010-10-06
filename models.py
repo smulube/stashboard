@@ -18,20 +18,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from google.appengine.ext import db
-import datetime
-from wsgiref.handlers import format_date_time
-from time import mktime
-from datetime import timedelta
-from datetime import date
 import config
+import datetime
 import urlparse
 
+from datetime import timedelta
+from datetime import date
+from google.appengine.ext import db
+from time import mktime
+from wsgiref.handlers import format_date_time
+
 class Level(object):
-    """
-    A fake db.Model object, just in case we want to actually store things
-    in the future
-    """
+    """A fake db.Model, just in case we want to actually store things."""
+
     levels = {
         "NORMAL": 10,
         "WARNING": 30,
@@ -46,16 +45,23 @@ class Level(object):
     
     @staticmethod
     def all():
-        """ Return all valid levels"""
-        llist = []
-        for k in Level.levels.keys():
-            llist.append((k, Level.levels[k]))
-        
+        """Fetches all valid status levels.
+
+        Returns:
+          levels: A list of Level instances
+        """
+        llist = [(k, Level.levels[k]) for k in Level.levels.keys()]
         return map(lambda x: x[0], sorted(llist, key=lambda x: x[1]))
         
     @staticmethod
     def get_severity(level):
-        """ Return the severity of a given level"""
+        """Get the severity of a given level.
+
+        Returns False if the given level doesn't exist.
+        
+        Returns:
+          int: status severity
+        """
         try:
             return Level.levels[level]
         except:
@@ -63,7 +69,13 @@ class Level(object):
             
     @staticmethod
     def get_level(severity):
-        """ For a given severity, return the correct level"""
+        """For a given severity, return the correct level.
+
+        Returns False if no level for given severity.
+
+        Returns:
+          str: status Level
+        """
         for k in Level.levels.keys():
             if Level.levels[k] == severity:
                 return k
@@ -71,16 +83,18 @@ class Level(object):
      
 
 class Service(db.Model):
-    """A service to track
+    """A service for Stashaboard to track."""
 
-        Properties:
-        name        -- string: The name of this service
-        description -- string: The function of the service
-        slug        -- stirng: URL friendly version of the name
-
-    """
     @staticmethod
     def get_by_slug(service_slug):
+        """Fetches a service by the given service_slug.
+
+        Args:
+          service_slug: Service name
+
+        Returns:
+          A Service instance or None if no service can be found.
+        """
         return Service.all().filter('slug = ', service_slug).get()
         
     
@@ -89,16 +103,32 @@ class Service(db.Model):
     description = db.StringProperty(required=True)
     
     def sid(self):
+        """Get the service string identifier.
+        
+        Returns:
+          The string identifier for this Service instance.
+        """
         return str(self.key())
 
     def current_event(self):
+        """ Fecth the current event.
+        
+        Returns:
+          The current Event instance for this Service.
+        """
         event = self.events.order('-start').get()
         return event
 
-    #Specialty function for front page
     def last_five_days(self):
-        
-        
+        """ Fetch the last five days of events.
+
+        A day is represented by a dictionary with the image of the highest
+        severity event and a Date object for that day. If the severity is
+        greater than a normal event, an "information" flag is set to True.
+
+        Returns:
+          A list of dictionaries. One dictionary for each of the last five days.
+        """
         lowest = Status.default()
         severity = lowest.severity
         
@@ -122,41 +152,44 @@ class Service(db.Model):
                 stats[event.start.day]["image"] = "information"
                 stats[event.start.day]["information"] = True
 
-        results = []
-
         keys = stats.keys()
         keys.sort()
         keys.reverse()
 
-        for k in keys:
-            results.append(stats[k])
-            
-        return results
-        
+        return [stats[k] for k in keys]            
         
     def events_for_day(self, day):
-        """ Return the largest seveirty (of events) for a given day. If no 
-        events occured, return the lowest severity rating.
+        """Fetch the Events for a given day.
         
-        Arguments: 
-        day         -- Date object: The day to summarize
+        Args: 
+          day: A date object:
         
+        Returns:
+          A list of Events, or None if no events happend on this day
         """
-        
         next_day = day + timedelta(days=1)
         
         return self.events.filter('start >=', day) \
             .filter('start <', next_day).fetch(40)
             
-    def compare(self, other_status):
-        return 0
-        
     def resource_url(self):
+        """Returns the service's resource url.
+
+        TODO: These urls should not be hardcoded in the model class
+
+        Returns:
+          A relative URL to this resource
+        """
         return "/services/" + self.slug
         
     def rest(self, base_url):
-        """ Return a Python object representing this model"""
+        """Return a dict representing this model
 
+        This object represents the Service in the REST API
+
+        Returns:
+          A dictionary
+        """
         m = {}
         m["name"] = str(self.name)
         m["id"] = str(self.slug)
@@ -184,22 +217,33 @@ class Status(db.Model):
     """
     @staticmethod
     def get_by_slug(status_slug):
+        """Fetch a Status for a given name
+
+        Args:
+          status_slug: A name of a possible status
+
+        Returns:
+          A Status instance or None if no Status has the name service_slug
+        """
         return Status.all().filter('slug = ', status_slug).get()
         
     @staticmethod
     def default():
-        """
-        Return the first status with a NORMAL level.
+        """Fetch the first status with a NORMAL level.
+        
+        Returns:
+          A Status instance, or None if no Status has a NORMAL level
         """
         normal = Level.get_severity(Level.normal)
         return Status.all().filter('severity == ', normal).get()
 
     @staticmethod
     def install_defaults():
+        """Install the default statuses. 
+
+        After creating and persisting the three default statuses, we create
+        a Setting object to signal the that the installation was successful.
         """
-        Install the default statuses. I am not sure where these should live just yet
-        """
-        # This should be Level.normal.severity and Level.normal.text
         normal = Level.get_severity(Level.normal)
         warning = Level.get_severity(Level.warning)
         error = Level.get_severity(Level.error)
@@ -226,22 +270,41 @@ class Status(db.Model):
     severity = db.IntegerProperty(required=True)
     
     def image_url(self):
+        """Returns the status's image url.
+
+        TODO: These urls should not be hardcoded in the model class
+
+        Returns:
+          A relative URL to the image for this resource
+        """
         return "/images/status/" + unicode(self.image) + ".png"
         
     def resource_url(self):
+        """Returns the status's url.
+
+        TODO: These urls should not be hardcoded in the model class
+
+        Returns:
+          A relative URL for this resource
+        """
         return "/statuses/" + str(self.slug)
         
     def rest(self, base_url):
-        """ Return a Python object representing this model"""
+        """Return a dict representing this model.
 
+        This object represents the Status in the REST API.
+        TODO: The image url creation should not be handled in the
+        model
+
+        Returns:
+          A dictionary
+        """
         m = {}
         m["name"] = str(self.name)
         m["id"] = str(self.slug)
         m["description"] = str(self.description)
         m["level"] = Level.get_level(int(self.severity))
         m["url"] = base_url + self.resource_url()
-        # This link shouldn't be hardcoded
-        
         o = urlparse.urlparse(base_url)
         m["image"] = o.scheme + "://" +  o.netloc + self.image_url()
         
@@ -249,32 +312,48 @@ class Status(db.Model):
     
 
 class Event(db.Model):
+    """A service event.
 
+        Properties:
+        start         -- DateTime: The time this event occurred
+        informational -- bool: True if this event has information attached
+        status        -- Status: The Status associated with this event
+        message       -- string: The message for this event
+        service       -- Service: The Service this event belongs to
+    """
     start = db.DateTimeProperty(required=True, auto_now_add=True)
-
-    # We want this to be required, but it would break all current installs
-    # Instead, we handle it in the rest method
     informational = db.BooleanProperty(default=False)
-
     status = db.ReferenceProperty(Status, required=True)
     message = db.TextProperty(required=True)
     service = db.ReferenceProperty(Service, required=True, 
         collection_name="events")
         
-    def duration(self):
-        # calculate the difference between start and end
-        # should evantually be stored
-        pass
-        
     def sid(self):
+        """Get the event string identifier.
+        
+        Returns:
+          The string identifier for this Event instance.
+        """
         return str(self.key())
         
     def resource_url(self):
+        """Returns the event's resource url.
+
+        TODO: These urls should not be hardcoded in the model class
+
+        Returns:
+          A relative URL to this resource
+        """
         return self.service.resource_url() + "/events/" + self.sid()
     
     def rest(self, base_url):
-        """ Return a Python object representing this model"""
-        
+        """Return a dict representing this model.
+
+        This object represents the Event in the REST API.
+
+        Returns:
+          A dictionary
+        """
         m = {}
         m["sid"] = self.sid()
 
@@ -292,14 +371,21 @@ class Event(db.Model):
         return m
         
 class Profile(db.Model):
+    """A Profile stores API credentials for a user"""
     owner = db.UserProperty(required=True)
     token = db.StringProperty(required=True)
     secret = db.StringProperty(required=True)
 
 class AuthRequest(db.Model):
+    """An AuthRequest saves the request token for OAuth validation"""
     owner = db.UserProperty(required=True)
     request_secret = db.StringProperty()
 
 class Setting(db.Model):
+    """Settings are proof that certain actions take place. 
+
+    This object is used when installed default statuses. See
+    Status.install_statuses() for more information.
+    """
     name = db.StringProperty(required=True)
 
