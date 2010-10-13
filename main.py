@@ -23,7 +23,6 @@
 
 __author__ = 'Kyle Conroy'
 
-import config
 import os
 import sys
 import logging
@@ -37,9 +36,9 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from google.appengine.api import memcache
 from google.appengine.ext import webapp
 
-from handlers import site
-from models import Status, Setting
-
+from stashboard import config
+from stashboard.handlers import site
+from stashboard.models import Status, Setting
 
 ROUTES = [
     ('/*$', site.BasicRootHandler),

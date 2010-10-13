@@ -28,19 +28,27 @@ clients, like a Flex app or a desktop program.
 
 __author__ = 'Kyle Conroy'
 
+import cgi
 import datetime
+import os
+import logging
+import string
+import re
+import urllib
+
 from datetime import timedelta
 from datetime import date
 from datetime import datetime
 from datetime import time
-from utils.external.dateutil.parser import parse
-import string
-import re
-import os
-import cgi
-import urllib
-import logging
-from utils.external import status_images
+
+from dateutil.parser import parse
+
+from stashboard import config
+from stashboard.handlers import restful
+from stashboard.models import Status, Event, Service, Level
+from stashboard.utils import status_images
+from stashboard.utils import authorized
+from stashboard.utils import slugify
 
 from wsgiref.handlers import format_date_time
 from time import mktime
@@ -49,11 +57,6 @@ from google.appengine.ext import webapp
 from google.appengine.api import users
 from google.appengine.ext import db
 
-from handlers import restful
-from utils import authorized
-from utils import slugify
-from models import Status, Event, Service, Level
-import config
 
 def aware_to_naive(d):
     """Convert an aware date to an naive date, in UTC"""

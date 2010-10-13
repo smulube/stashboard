@@ -23,14 +23,15 @@
 __author__ = 'Kyle Conroy'
 import logging
 import datetime
-import config 
+import oauth2 as oauth
+
+from datetime import date, timedelta
 
 from google.appengine.api import users
 
-from models import AuthRequest, Profile, Service, Event, Status, Level
-from datetime import date, timedelta
-from handlers import site
-from utils.external import oauth2 as oauth
+from stashboard import config 
+from stashboard.models import AuthRequest, Profile, Service, Event, Status, Level
+from stashboard.handlers import site
 
 class RootHandler(site.SiteHandler):
     

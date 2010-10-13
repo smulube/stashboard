@@ -106,13 +106,7 @@ h3.date-range {color: #999; margin-top: 20px}
 #legend td {padding: 5px}
 
 
-#footer, #push {height: 3em;}
-#footer {padding: 0 30px; width: 900px; margin: auto;}
-#footer ul {padding: 10px 0px;}
-#footer ul.left { float: left;}
-#footer ul.right { float: right;}
-#footer ul li {display: inline; border-left: 1px solid black; padding: 0px 5px;}
-#footer ul li:first-child {border: 0px; padding-left: 0px;}
+
 #icons, #icons a{ color: #ccc; }
 
 td.status a{position: relative;}
@@ -205,10 +199,18 @@ td.status a .information {position: absolute; top: 0px; left: 1px; z-index: 500;
     margin: 0;
 }
 
+
+#footer, #push {height: 3em;}
+#footer {padding: 0 30px; width: 900px; margin: auto;}
+#footer ul {padding: 10px 0px;}
+#footer ul.left { float: left;}
+#footer ul.right { float: right;}
+#footer ul li {display: inline; }
+#footer ul.left li { border-left: 1px solid black; padding: 0px 5px;}
+#footer ul li:first-child {border: 0px; padding-left: 0px;}
+
 #powered {
     font-family: courier, monospace;
     font-size: 10px;
 }
-
-
 

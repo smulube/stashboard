@@ -25,8 +25,9 @@ __author__ = 'Kyle Conroy'
 
 # API HANDLER
 import wsgiref.handlers
+
 from google.appengine.ext import webapp
-from handlers import api
+from stashboard.handlers import api
 
 ROUTES = [
     #API

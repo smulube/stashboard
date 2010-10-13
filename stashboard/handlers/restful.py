@@ -36,13 +36,15 @@ with an Allow header containing the list of valid methods.
 """
 __author__ = 'William T. Katz'
 
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp import template
-from django.utils import simplejson as json
+import cgi
 import logging
 import os
-import config
-import cgi
+
+from google.appengine.ext import webapp
+from google.appengine.ext.webapp import template
+
+from django.utils import simplejson as json
+from stashboard import config
 
 # Some useful module methods
 def send_successful_response(handler, response):

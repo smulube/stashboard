@@ -23,11 +23,12 @@
 
 __author__ = 'Kyle Conroy'
 
-# ADMIN HANDLER
 import os
 import wsgiref.handlers
+
 from google.appengine.ext import webapp
-from handlers import admin, site
+
+from stashboard.handlers import admin, site
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 

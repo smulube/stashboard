@@ -24,9 +24,10 @@ import urlparse
 
 from datetime import timedelta
 from datetime import date
-from google.appengine.ext import db
 from time import mktime
 from wsgiref.handlers import format_date_time
+
+from google.appengine.ext import db
 
 class Level(object):
     """A fake db.Model, just in case we want to actually store things."""

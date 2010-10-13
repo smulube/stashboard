@@ -28,7 +28,7 @@ import random
 import urlparse
 import hmac
 import binascii
-from utils.external import httplib2
+import httplib2
 
 try:
     from urlparse import parse_qs, parse_qsl

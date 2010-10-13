@@ -38,28 +38,29 @@ clients, like a Flex app or a desktop program.
 
 __author__ = 'Kyle Conroy'
 
+import cgi
 import datetime
-from datetime import date, timedelta
+import logging
+import os
 import string
 import re
-import os
-import cgi
-import urllib
-import logging
 import urlparse
-from wsgiref.handlers import format_date_time
+import urllib
+
+import oauth2 as oauth
+
+from datetime import date, timedelta
 from time import mktime
+from wsgiref.handlers import format_date_time
 
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.api import users
 
-from utils.external import oauth2 as oauth
-from handlers import restful
-from utils import authorized
-from models import Status, Service, Event, Profile, AuthRequest
-
-import config
+from stashboard import config
+from stashboard.handlers import restful
+from stashboard.utils import authorized
+from stashboard.models import Status, Service, Event, Profile, AuthRequest
 
 def get_past_days(num):
     date = datetime.date.today()
