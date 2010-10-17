@@ -18,8 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import config
-import datetime
 import urlparse
 
 from datetime import timedelta
@@ -109,7 +107,7 @@ class Service(db.Model):
         Returns:
           The string identifier for this Service instance.
         """
-        return str(self.key())
+        return unicode(self.key())
 
     def current_event(self):
         """ Fecth the current event.
@@ -192,9 +190,9 @@ class Service(db.Model):
           A dictionary
         """
         m = {}
-        m["name"] = str(self.name)
-        m["id"] = str(self.slug)
-        m["description"] = str(self.description)
+        m["name"] = unicode(self.name)
+        m["id"] = unicode(self.slug)
+        m["description"] = unicode(self.description)
         m["url"] = base_url + self.resource_url()
         
         event = self.current_event()
@@ -288,7 +286,7 @@ class Status(db.Model):
         Returns:
           A relative URL for this resource
         """
-        return "/statuses/" + str(self.slug)
+        return "/statuses/" + unicode(self.slug)
         
     def rest(self, base_url):
         """Return a dict representing this model.
@@ -301,9 +299,9 @@ class Status(db.Model):
           A dictionary
         """
         m = {}
-        m["name"] = str(self.name)
-        m["id"] = str(self.slug)
-        m["description"] = str(self.description)
+        m["name"] = unicode(self.name)
+        m["id"] = unicode(self.slug)
+        m["description"] = unicode(self.description)
         m["level"] = Level.get_level(int(self.severity))
         m["url"] = base_url + self.resource_url()
         o = urlparse.urlparse(base_url)
@@ -335,7 +333,7 @@ class Event(db.Model):
         Returns:
           The string identifier for this Event instance.
         """
-        return str(self.key())
+        return unicode(self.key())
         
     def resource_url(self):
         """Returns the event's resource url.
@@ -361,7 +359,7 @@ class Event(db.Model):
         stamp = mktime(self.start.timetuple())
         m["timestamp"] = format_date_time(stamp)
         m["status"] = self.status.rest(base_url)
-        m["message"] = str(self.message)
+        m["message"] = unicode(self.message)
         m["url"] = base_url + self.resource_url()
 
         if self.informational:

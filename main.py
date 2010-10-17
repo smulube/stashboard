@@ -24,7 +24,6 @@
 __author__ = 'Kyle Conroy'
 
 import os
-import sys
 import logging
 import wsgiref.handlers
 
