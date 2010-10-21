@@ -1,5 +1,6 @@
-import models
 import unittest
+
+from stashboard import models
 from google.appengine.api import apiproxy_stub_map
 from google.appengine.api import datastore_file_stub
 
@@ -26,11 +27,18 @@ class TestServices(StashboardTest):
         s = models.Service(slug="service-foo", name="Service Foo", 
                            description="A wonderful service")
         s.put()
-        fetched_s = models.Service.all().filter('slug =', "service-foo").get()
+        fetched_s = models.Service.get_by_slug("service-foo")
         self.assertEqual(fetched_s.name, "Service Foo")
         self.assertEqual(fetched_s.slug, "service-foo")
         self.assertEqual(fetched_s.description, "A wonderful service")
         self.assertEqual(fetched_s.current_event(), None)
+
+    def test_invalid_service_slug(self):
+        """ An invalid service slug shoud cause Service.get_by_slug to
+        return None.
+        """
+        fetched = models.Service.get_by_slug("doesntexists")
+        self.assertEqual(fetched, None) 
 
 class TestLevels(StashboardTest):
 
@@ -64,4 +72,10 @@ class TestEventModel(StashboardTest):
 
 
 class TestStatusModel(StashboardTest):
-    pass
+
+    def test_invalid_status_slug(self):
+        """ An invalid service slug shoud cause Service.get_by_slug to
+        return None.
+        """
+        fetched = models.Status.get_by_slug("doesntexists")
+        self.assertEqual(fetched, None) 
