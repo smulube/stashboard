@@ -78,6 +78,8 @@ h3.date-range {color: #999; margin-top: 20px}
 .time-header {width: 20%;}
 .delete-header {width: 8%;}
 
+#webservices .event-summary td.status { width: 30px; }
+
 #submit { 
   background: rgb(228, 228, 228);
   border: 1px solid #ccc;
@@ -135,7 +137,7 @@ td.status a .information {position: absolute; top: 0px; left: 1px; z-index: 500;
 #documentation a { color: #4476B5; text-decoration: underline;}
 
 #documentation p { margin: 10px 0px; }
-#documentation h2 { margin: 20px 0 10px 0; }
+#admin h2, #documentation h2 { margin: 0px 0 10px 0; }
 #documentation h3 { margin: 15px 0px 10px 0; font-size: 24px; color:#555555;}
 #documentation h4 { margin: 10px 0px; font-size: 22px; color: #4476B5;}
 #documentation h5 { margin: 10px 0px; font-size: 16px;}

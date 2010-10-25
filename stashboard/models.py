@@ -18,14 +18,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import logging
+import pytz
 import urlparse
 
 from datetime import timedelta
+from datetime import datetime
 from datetime import date
 from time import mktime
 from wsgiref.handlers import format_date_time
 
 from google.appengine.ext import db
+
+from stashboard import config
+from stashboard.utils import dates
 
 class Level(object):
     """A fake db.Model, just in case we want to actually store things."""
@@ -118,7 +124,47 @@ class Service(db.Model):
         event = self.events.order('-start').get()
         return event
 
-    def last_five_days(self):
+    def calendar(self, start, n):
+        """ Return the calendar report for the given range (inclusive).
+
+        Args:
+          start: A datetime object starting the range
+          n: The number of days to return
+
+        Returns:
+          A list of dictionaries. One dictionary for each of the last five days.
+        """
+        lowest = Status.default()
+        severity = lowest.severity
+
+        end = start - timedelta(days=n)
+        events = self.events.filter('start >=', end) \
+            .filter('start <=', start).fetch(100)
+        
+        stats = []
+        
+        for i in range(n):
+            start -= timedelta(days=1)
+            stats.append({
+                "image": lowest.image,
+                "day": start,
+                "information": False,
+                "events": [],
+            })
+        
+        for event in events:
+            for i in range(n):
+                day = stats[i]["day"]
+                if event.start >= day and event.start < (day + timedelta(days=1)):
+                    stats[i]["events"].append(event)
+                    if event.status.severity > severity:
+                        stats[i]["image"] = "information"
+                        stats[i]["information"] = True
+
+        return stats
+
+
+    def last_six_days(self):
         """ Fetch the last five days of events.
 
         A day is represented by a dictionary with the image of the highest
@@ -128,35 +174,16 @@ class Service(db.Model):
         Returns:
           A list of dictionaries. One dictionary for each of the last five days.
         """
-        lowest = Status.default()
-        severity = lowest.severity
-        
-        yesterday = date.today() - timedelta(days=1)
-        ago = yesterday - timedelta(days=5)
-        
-        events = self.events.filter('start >', ago) \
-            .filter('start <', yesterday).fetch(100)
-        
-        stats = {}
-        
-        for i in range(5):
-            stats[yesterday.day] = {
-                "image": lowest.image,
-                "day": yesterday,
-            }
-            yesterday = yesterday - timedelta(days=1)
-        
-        for event in events:
-            if event.status.severity > severity:
-                stats[event.start.day]["image"] = "information"
-                stats[event.start.day]["information"] = True
+        utc = pytz.utc
+        stash_tz = dates.get_timezone()
+        d = datetime.now().replace(tzinfo=utc)
+        dn = stash_tz.normalize(d).replace(hour=0, minute=0, second=0, microsecond=0)
+        dn += timedelta(days=1)
+        dn = dn.astimezone(utc).replace(tzinfo=None)
+        logging.info(dn)
+        calendar = self.calendar(dn, 6)
+        return calendar
 
-        keys = stats.keys()
-        keys.sort()
-        keys.reverse()
-
-        return [stats[k] for k in keys]            
-        
     def events_for_day(self, day):
         """Fetch the Events for a given day.
         
@@ -334,7 +361,15 @@ class Event(db.Model):
           The string identifier for this Event instance.
         """
         return unicode(self.key())
-        
+
+    def local_start(self):
+        """Get the start time, local to the timezone in config
+
+        Returns:
+          A datettime object
+        """
+        return dates.localize(self.start)
+
     def resource_url(self):
         """Returns the event's resource url.
 

@@ -45,3 +45,7 @@ SITE = {
     "template_path": os.path.join(APP_ROOT_DIR, "views/default"),
     "rich_client": True, #If false, the website will go into a simplified read-only view
 }
+
+# TIMEZONE
+# Any timezone that pytz understands
+TIMEZONE = "US/Pacific"

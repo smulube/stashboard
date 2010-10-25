@@ -42,6 +42,7 @@ import cgi
 import datetime
 import logging
 import os
+import pytz
 import string
 import re
 import urlparse
@@ -49,7 +50,9 @@ import urllib
 
 import oauth2 as oauth
 
-from datetime import date, timedelta
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 from time import mktime
 from wsgiref.handlers import format_date_time
 
@@ -59,17 +62,23 @@ from google.appengine.api import users
 
 from stashboard import config
 from stashboard.handlers import restful
-from stashboard.utils import authorized
+from stashboard.utils import authorized, dates
 from stashboard.models import Status, Service, Event, Profile, AuthRequest
 
 def get_past_days(num):
-    date = datetime.date.today()
-    dates = []
+    utc = pytz.utc
+    stash_tz = dates.get_timezone()
+    d = datetime.now().replace(tzinfo=utc)
+    dn = stash_tz.normalize(d).replace(hour=0, minute=0, second=0, microsecond=0)
+    dn = dn.astimezone(utc).replace(tzinfo=None)
+
+    logging.info(dn)
+    ds = []
     
     for i in range(1, num+1):
-        dates.append(date - datetime.timedelta(days=i))
-    
-    return dates
+        ds.append(dn - timedelta(days=i))
+
+    return ds
     
 class SiteHandler(restful.Controller):
 
@@ -157,9 +166,15 @@ class BasicRootHandler(SiteHandler):
         p.order("severity")
         
         past = get_past_days(5)
+
+        services = q.fetch(100)
+    
+        for s in services:
+            logging.info(s.last_six_days())
+
         
         td = {}
-        td["services"] = q.fetch(100)
+        td["services"] = services
         td["statuses"] = p.fetch(100)
         td["past"] = past
         td["default"] = Status.default()
@@ -183,14 +198,14 @@ class BasicServiceHandler(SiteHandler):
 
         try: 
             if day:
-                start_date = date(int(year),int(month),int(day))
+                start_date = dates.add_offset(datetime(int(year),int(month),int(day)))
                 end_date = start_date + timedelta(days=1)
             elif month:
-                start_date = date(int(year),int(month),1)
+                start_date = dates.add_offset(datetime(int(year),int(month),1))
                 days = calendar.monthrange(start_date.year, start_date.month)[1]
                 end_date = start_date + timedelta(days=days)
             elif year:
-                start_date = date(int(year),1,1)
+                start_date = dates.add_offset(datetime(int(year),1,1))
                 end_date = start_date + timedelta(days=365)
             else:
                 start_date = None
@@ -199,19 +214,46 @@ class BasicServiceHandler(SiteHandler):
         except ValueError:
             self.not_found()
             return
+        
+        logging.info(start_date)
             
         if start_date and end_date:
             events.filter('start >= ', start_date).filter('start <', end_date)
 
         events.order("-start")
+        e = events.fetch(100)
+
+        for v in e:
+            v.local_start()
 
         td = {}
         td["service"] = service
-        td["events"] = events.fetch(100)
+        td["events"] = e
         td["start_date"] = start_date
         td["end_date"] = end_date
 
+        self.render(td, 'site/service-day-summary.html')
+
+class ServiceSummaryHandler(SiteHandler):
+
+    def get(self, service_slug):
+        user = users.get_current_user()
+        logging.debug("BasicServiceHandler #get")
+
+        service = Service.get_by_slug(service_slug)
+
+        if not service:
+            self.not_found()
+            return
+
+        events = service.events
+        
+        td = {}
+        td["service"] = service
+        td["calendar"] = service.last_six_days()
+
         self.render(td, 'site/service.html')
+
         
 class DocumentationOverview(SiteHandler):
     

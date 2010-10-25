@@ -46,7 +46,7 @@ ROUTES = [
     (r'/services/(.+)/(.+)/(.+)/(.+)', site.BasicServiceHandler),
     (r'/services/(.+)/(.+)/(.+)', site.BasicServiceHandler),
     (r'/services/(.+)/(.+)', site.BasicServiceHandler),
-    (r'/services/(.+)', site.BasicServiceHandler),
+    (r'/services/(.+)', site.ServiceSummaryHandler),
     (r'/documentation/overview', site.DocumentationOverview),
     (r'/documentation/examples', site.DocumentationExamples),
     (r'/documentation/rest', site.DocumentationRest),
